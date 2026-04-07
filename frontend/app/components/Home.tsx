@@ -22,11 +22,11 @@ export default function WelcomeScreen({
     <View style={styles.screen}>
       <StatusBar barStyle="light-content" backgroundColor="#0B1020" />
 
-      <ImageBackground
+      {/* <ImageBackground
         source={require('../assets/nature-bg.jpg')}
         resizeMode="cover"
         style={styles.background}
-      >
+      > */}
         <View style={styles.overlay}>
           <View style={styles.topRow}>
             <View style={styles.badge}>
@@ -102,7 +102,7 @@ export default function WelcomeScreen({
             </Pressable>
           </View>
         </View>
-      </ImageBackground>
+      {/* </ImageBackground> */}
     </View>
   );
 }
