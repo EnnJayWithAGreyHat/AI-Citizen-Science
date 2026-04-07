@@ -17,8 +17,8 @@ Click the "Code" dropdown<br/>
 Click "Open with GitHub Desktop"<br/>
 Press Ctrl+Shift+A OR at the top, click Repositories --> Open With... and select Visual Studio Code<br/>
 At the top, click Terminal --> New Terminal OR Ctrl+Shift+`<br/>
-In the terminal, run "cd frontend/app"<br/>
-In the terminal, run "npm i -g pnpm"<br/>
+In the terminal, run "cd frontend/app". Double check that you're in the app folder.<br/>
+In the terminal, run "npm i -g pnpm". IF COMMAND FAILS, try this in Powershell: "Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned"<br/>
 In the terminal, run "pnpm add expo"<br/>
 In the terminal, run "pnpm expo start"<br/>
 Scan the QR code!<br/>
@@ -31,8 +31,8 @@ Choose a local path (recommended: C:\Users\name\OneDrive\Documents\GitHub) to pu
 Select the project from the top-left dropdown arrow if not already selected<br/>
 Press Ctrl+Shift+A OR at the top, click Repositories --> Open With... and select Visual Studio Code<br/>
 At the top, click Terminal --> New Terminal OR Ctrl+Shift+`<br/>
-In the terminal, run "cd frontend/app"<br/>
-In the terminal, run "npm i -g pnpm"<br/>
+In the terminal, run "cd frontend/app". Double check that you're in the app folder.<br/>
+In the terminal, run "npm i -g pnpm". IF COMMAND FAILS, try this in Powershell: "Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned"<br/>
 In the terminal, run "pnpm add expo"<br/>
 In the terminal, run "pnpm expo start"<br/>
 Scan the QR code!<br/>
