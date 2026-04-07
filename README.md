@@ -4,6 +4,7 @@ EPICS group for AI and citizen science that is working on app development for a 
 ### SETUP
 Download the "Expo Go" mobile app (has a white A logo with a grey dot on the side)
 Download and install VSCode: "https://code.visualstudio.com/download"
+Download and install Git: "https://git-scm.com/install/"
 Download and install Nodejs: "https://nodejs.org/en/download" (verify by running "npm -v" in terminal)
 #### SETUP WITH GITHUB DESKTOP
 Download GitHub Desktop
@@ -34,3 +35,6 @@ In the terminal, run "pnpm add expo"
 In the terminal, run "pnpm expo start"
 Scan the QR Code!
 ---
+
+### STAYING UPDATED
+In GitHub Desktop, there is a "Pull Origin" button near the top left. Click that when you want the most recent version of our changes!
