@@ -55,6 +55,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.xl,
     backgroundColor: colors.surface,
     gap: spacing.md,
+    width: '100%'
   },
 
   permissionIcon: {
@@ -161,9 +162,12 @@ const styles = StyleSheet.create({
   },
 
   cameraBottomBar: {
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     paddingBottom: 52,
     paddingTop: spacing.lg,
+    paddingHorizontal: spacing.xl,
   },
 
   shutterOuter: {
@@ -181,6 +185,138 @@ const styles = StyleSheet.create({
     height: 62,
     borderRadius: radius.pill,
     backgroundColor: '#ffffff',
+  },
+
+  // ── Shot counter badge ──────────────────────────────────────────────────────
+
+  shotCounterBadge: {
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.md,
+    borderRadius: radius.pill,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  shotCounterText: {
+    color: '#ffffff',
+    fontSize: 13,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+  },
+
+  // ── Thumbnail strip (camera viewfinder overlay) ─────────────────────────────
+
+  thumbnailStrip: {
+    maxHeight: 80,
+    paddingHorizontal: spacing.md,
+    marginBottom: spacing.sm,
+  },
+
+  reviewThumbnailStrip: {
+    maxHeight: 80,
+    paddingHorizontal: spacing.md,
+    marginTop: -spacing.sm,
+  },
+
+  thumbnailStripContent: {
+    gap: spacing.sm,
+    alignItems: 'center',
+    paddingVertical: spacing.xs,
+  },
+
+  thumbnail: {
+    width: 64,
+    height: 64,
+    borderRadius: radius.sm,
+    overflow: 'visible',
+    borderWidth: 2,
+    borderColor: 'transparent',
+  },
+
+  thumbnailSelected: {
+    borderColor: '#ffffff',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.4,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+
+  thumbnailImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: radius.sm - 2,
+  },
+
+  thumbnailRemoveBtn: {
+    position: 'absolute',
+    top: -6,
+    right: -6,
+    width: 20,
+    height: 20,
+    borderRadius: radius.pill,
+    backgroundColor: colors.ink,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 10,
+  },
+
+  thumbnailRemoveText: {
+    color: '#ffffff',
+    fontSize: 9,
+    fontWeight: '700',
+    lineHeight: 11,
+    textAlign: 'center',
+  },
+
+  // ── Camera bottom bar extras ────────────────────────────────────────────────
+
+  reviewButton: {
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    borderRadius: radius.pill,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.4)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: spacing.lg,
+  },
+
+  reviewButtonText: {
+    color: '#ffffff',
+    fontSize: 14,
+    fontWeight: '600',
+    letterSpacing: 0.2,
+  },
+
+  reviewButtonPlaceholder: {
+    width: 74,
+    marginRight: spacing.lg,
+  },
+
+  shutterDisabled: {
+    opacity: 0.35,
+  },
+
+  // ── Preview badge ───────────────────────────────────────────────────────────
+
+  previewBadge: {
+    position: 'absolute',
+    bottom: spacing.sm,
+    right: spacing.sm,
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.sm,
+    borderRadius: radius.pill,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+
+  previewBadgeText: {
+    color: '#ffffff',
+    fontSize: 12,
+    fontWeight: '500',
+    letterSpacing: 0.2,
   },
 
   // ── Preview screen ──────────────────────────────────────────────────────────
@@ -353,6 +489,7 @@ const styles = StyleSheet.create({
   },
 
   primaryButtonText: {
+    textAlign: 'center',
     fontSize: 15,
     fontWeight: '600',
     color: colors.accentFg,
@@ -376,6 +513,18 @@ const styles = StyleSheet.create({
     color: colors.ink,
     letterSpacing: 0.1,
   },
+
+  permissionButton: {
+    height: 50,
+    borderRadius: radius.md,
+    color: colors.accentFg,
+    backgroundColor: colors.accent,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: spacing.xl,
+    alignSelf: 'center',
+  },
+
 });
 
 export default styles;
