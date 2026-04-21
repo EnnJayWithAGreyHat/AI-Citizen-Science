@@ -24,12 +24,13 @@ interface AnalysisResult {
   confidence: number;
 }
 
-type AppState = 'idle' | 'camera' | 'preview' | 'uploading' | 'analyzing' | 'done';
+type AppState = 'idle' | 'camera' | 'review' | 'uploading' | 'analyzing' | 'done';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const UPLOAD_ENDPOINT = 'https://your-api.com/upload'; // 🔧 Replace with your endpoint
-const ANALYSIS_ENDPOINT = 'https://your-api.com/analyze'; // 🔧 Replace with your endpoint
+const MAX_PHOTOS = 5;
+const UPLOAD_ENDPOINT = 'https://your-api.com/upload';
+const ANALYSIS_ENDPOINT = 'https://your-api.com/analyze';
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
@@ -37,7 +38,12 @@ export default function Camera() {
   const [permission, requestPermission] = useCameraPermissions();
   const [appState, setAppState] = useState<AppState>('idle');
   const [facing, setFacing] = useState<CameraType>('back');
-  const [photoUri, setPhotoUri] = useState<string | null>(null);
+
+  // Multi-shot state
+  const [photos, setPhotos] = useState<string[]>([]);
+  const [selectedIndex, setSelectedIndex] = useState<number>(0);
+
+  // Result state
   const [uploadResult, setUploadResult] = useState<UploadResponse | null>(null);
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
   const [statusMessage, setStatusMessage] = useState('');
@@ -58,8 +64,8 @@ export default function Camera() {
         <Text style={styles.permissionBody}>
           We need access to your camera to take and upload photos.
         </Text>
-        <TouchableOpacity style={styles.primaryButton} onPress={requestPermission}>
-          <Text style={styles.primaryButtonText}>Grant Permission</Text>
+        <TouchableOpacity style={styles.permissionButton} onPress={requestPermission}>
+          <Text style={styles.permissionButton}>Grant Permission</Text>
         </TouchableOpacity>
       </View>
     );
@@ -80,26 +86,51 @@ export default function Camera() {
         Alert.alert('Error', 'Failed to capture photo. Please try again.');
         return;
       }
-      setPhotoUri(photo.uri);
-      setAppState('preview');
+
+      const updatedPhotos = [...photos, photo.uri];
+      setPhotos(updatedPhotos);
+
+      // Auto-select the newly taken photo
+      setSelectedIndex(updatedPhotos.length - 1);
+
+      // If we've hit the max, move to review
+      if (updatedPhotos.length >= MAX_PHOTOS) {
+        setAppState('review');
+      }
     } catch {
       Alert.alert('Error', 'Failed to take picture. Please try again.');
     }
   };
 
-  // FIX: added setStatusMessage('') so any in-progress status is cleared,
-  // and moved setAppState('camera') to last so all state is wiped before
-  // the camera screen mounts (avoids a stale-render flash of old results).
-  const retake = () => {
-    setUploadResult(null);
-    setAnalysisResult(null);
-    setStatusMessage('');
-    setPhotoUri(null);
+  // Remove a specific photo from the strip
+  const removePhoto = (index: number) => {
+    const updated = photos.filter((_, i) => i !== index);
+    setPhotos(updated);
+
+    if (updated.length === 0) {
+      // No photos left — go back to camera
+      setAppState('camera');
+      setSelectedIndex(0);
+    } else {
+      // Keep selection in bounds
+      setSelectedIndex(Math.min(selectedIndex, updated.length - 1));
+    }
+  };
+
+  // Go to review screen to pick the best shot
+  const goToReview = () => {
+    if (photos.length === 0) return;
+    setAppState('review');
+  };
+
+  // Go back to camera to take more shots
+  const backToCamera = () => {
     setAppState('camera');
   };
 
   const reset = () => {
-    setPhotoUri(null);
+    setPhotos([]);
+    setSelectedIndex(0);
     setUploadResult(null);
     setAnalysisResult(null);
     setStatusMessage('');
@@ -107,6 +138,7 @@ export default function Camera() {
   };
 
   const uploadAndAnalyze = async () => {
+    const photoUri = photos[selectedIndex];
     if (!photoUri) return;
 
     try {
@@ -150,7 +182,7 @@ export default function Camera() {
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Something went wrong.';
       Alert.alert('Error', message);
-      setAppState('preview');
+      setAppState('review');
       setStatusMessage('');
     }
   };
@@ -165,9 +197,9 @@ export default function Camera() {
           <Text style={styles.idleIcon}>🖼</Text>
         </View>
         <Text style={styles.idleTitle}>Photo Upload</Text>
-        <Text style={styles.idleSubtitle}>Take a photo to upload and analyze it with AI.</Text>
-        <TouchableOpacity style={styles.primaryButton} onPress={openCamera}>
-          <Text style={styles.primaryButtonText}>Open Camera</Text>
+        <Text style={styles.idleSubtitle}>Take up to {MAX_PHOTOS} photos, pick the best one, and analyze it with AI.</Text>
+        <TouchableOpacity style={styles.permissionButton} onPress={openCamera}>
+          <Text style={styles.primaryButtonText}>OPEN CAMERA</Text>
         </TouchableOpacity>
       </View>
     );
@@ -175,6 +207,8 @@ export default function Camera() {
 
   // Camera viewfinder
   if (appState === 'camera') {
+    const shotsRemaining = MAX_PHOTOS - photos.length;
+
     return (
       <View style={styles.cameraContainer}>
         <CameraView ref={cameraRef} style={styles.camera} facing={facing}>
@@ -183,34 +217,132 @@ export default function Camera() {
             <TouchableOpacity style={styles.cameraIconButton} onPress={reset}>
               <Text style={styles.cameraIconText}>✕</Text>
             </TouchableOpacity>
+
+            {/* Shot counter badge */}
+            <View style={styles.shotCounterBadge}>
+              <Text style={styles.shotCounterText}>
+                {photos.length}/{MAX_PHOTOS}
+              </Text>
+            </View>
+
             <TouchableOpacity style={styles.cameraIconButton} onPress={flipCamera}>
               <Text style={styles.cameraIconText}>⟳</Text>
             </TouchableOpacity>
           </View>
 
-          {/* Shutter */}
+          {/* Thumbnail strip — shown when at least one photo exists */}
+          {photos.length > 0 && (
+            <ScrollView
+              horizontal
+              style={styles.thumbnailStrip}
+              contentContainerStyle={styles.thumbnailStripContent}
+              showsHorizontalScrollIndicator={false}
+            >
+              {photos.map((uri, index) => (
+                <TouchableOpacity
+                  key={uri}
+                  style={[
+                    styles.thumbnail,
+                    index === selectedIndex && styles.thumbnailSelected,
+                  ]}
+                  onPress={() => setSelectedIndex(index)}
+                >
+                  <Image source={{ uri }} style={styles.thumbnailImage} />
+                  {/* Remove button */}
+                  <TouchableOpacity
+                    style={styles.thumbnailRemoveBtn}
+                    onPress={() => removePhoto(index)}
+                    hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+                  >
+                    <Text style={styles.thumbnailRemoveText}>✕</Text>
+                  </TouchableOpacity>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          )}
+
+          {/* Bottom controls */}
           <View style={styles.cameraBottomBar}>
-            <TouchableOpacity style={styles.shutterOuter} onPress={takePicture}>
+            {/* Review button — only visible when photos exist */}
+            {photos.length > 0 && (
+              <TouchableOpacity style={styles.reviewButton} onPress={goToReview}>
+                <Text style={styles.reviewButtonText}>Review</Text>
+              </TouchableOpacity>
+            )}
+
+            {/* Shutter — disabled when at max */}
+            <TouchableOpacity
+              style={[
+                styles.shutterOuter,
+                shotsRemaining === 0 && styles.shutterDisabled,
+              ]}
+              onPress={takePicture}
+              disabled={shotsRemaining === 0}
+            >
               <View style={styles.shutterInner} />
             </TouchableOpacity>
+
+            {/* Spacer to balance layout when review button is hidden */}
+            {photos.length === 0 && <View style={styles.reviewButtonPlaceholder} />}
           </View>
         </CameraView>
       </View>
     );
   }
 
-  // Preview + result screen
+  // Review / select + result screen
   return (
     <ScrollView
       style={styles.previewScroll}
       contentContainerStyle={styles.previewContent}
       showsVerticalScrollIndicator={false}
     >
-      {/* Photo preview */}
-      {photoUri && (
+      {/* Large preview of the selected photo */}
+      {photos.length > 0 && (
         <View style={styles.previewImageWrap}>
-          <Image source={{ uri: photoUri }} style={styles.previewImage} resizeMode="cover" />
+          <Image
+            source={{ uri: photos[selectedIndex] }}
+            style={styles.previewImage}
+            resizeMode="cover"
+          />
+          {/* Selection label */}
+          <View style={styles.previewBadge}>
+            <Text style={styles.previewBadgeText}>
+              Photo {selectedIndex + 1} of {photos.length}
+            </Text>
+          </View>
         </View>
+      )}
+
+      {/* Thumbnail selector strip */}
+      {photos.length > 1 && appState === 'review' && (
+        <ScrollView
+          horizontal
+          style={styles.reviewThumbnailStrip}
+          contentContainerStyle={styles.thumbnailStripContent}
+          showsHorizontalScrollIndicator={false}
+        >
+          {photos.map((uri, index) => (
+            <TouchableOpacity
+              key={uri}
+              style={[
+                styles.thumbnail,
+                index === selectedIndex && styles.thumbnailSelected,
+              ]}
+              onPress={() => setSelectedIndex(index)}
+            >
+              <Image source={{ uri }} style={styles.thumbnailImage} />
+              {/* Remove button */}
+              <TouchableOpacity
+                style={styles.thumbnailRemoveBtn}
+                onPress={() => removePhoto(index)}
+                hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+              >
+                <Text style={styles.thumbnailRemoveText}>✕</Text>
+              </TouchableOpacity>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
       )}
 
       {/* Status / loader */}
@@ -264,11 +396,14 @@ export default function Camera() {
 
       {/* Action buttons */}
       <View style={styles.actionRow}>
-        {appState === 'preview' && (
+        {appState === 'review' && (
           <>
-            <TouchableOpacity style={styles.secondaryButton} onPress={retake}>
-              <Text style={styles.secondaryButtonText}>Retake</Text>
-            </TouchableOpacity>
+            {/* Go back to camera if under the limit */}
+            {photos.length < MAX_PHOTOS && (
+              <TouchableOpacity style={styles.secondaryButton} onPress={backToCamera}>
+                <Text style={styles.secondaryButtonText}>+ More</Text>
+              </TouchableOpacity>
+            )}
             <TouchableOpacity style={styles.primaryButton} onPress={uploadAndAnalyze}>
               <Text style={styles.primaryButtonText}>Upload & Analyze</Text>
             </TouchableOpacity>
@@ -277,8 +412,8 @@ export default function Camera() {
 
         {appState === 'done' && (
           <>
-            <TouchableOpacity style={styles.secondaryButton} onPress={retake}>
-              <Text style={styles.secondaryButtonText}>New Photo</Text>
+            <TouchableOpacity style={styles.secondaryButton} onPress={reset}>
+              <Text style={styles.secondaryButtonText}>New Session</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.primaryButton} onPress={reset}>
               <Text style={styles.primaryButtonText}>Done</Text>
