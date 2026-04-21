@@ -1,16 +1,36 @@
 import { StatusBar } from 'expo-status-bar';
 import React, { useState } from 'react';
-import { SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+  Pressable,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  useWindowDimensions,
+  View,
+} from 'react-native';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import Home from './components/Home';
 import MyGarden from './components/MyGarden';
 import Prompt from './components/Prompt';
-import Camera from './components/Camera'
+import Camera from './components/Camera';
+import BiodiversityHeatmap from './components/BiodiversityHeatmap';
+import BiodiversityAnalytics from './components/BiodiversityAnalytics';
 
-type ScreenKey = 'home' | 'camera' | 'myGarden' | 'prompt' | 'login' | 'postUpload';
+type ScreenKey =
+  | 'home'
+  | 'camera'
+  | 'heatmap'
+  | 'heatmapAnalytics'
+  | 'myGarden'
+  | 'prompt'
+  | 'login'
+  | 'postUpload';
 
 const SCREENS: { key: ScreenKey; label: string }[] = [
   { key: 'home', label: 'Home' },
   { key: 'camera', label: 'Camera' },
+  { key: 'heatmap', label: 'Heat Map' },
+  { key: 'heatmapAnalytics', label: 'Heat Map Analytics' },
   { key: 'myGarden', label: 'My Garden' },
   { key: 'prompt', label: 'Prompt' },
   { key: 'login', label: 'Login' },
@@ -26,9 +46,11 @@ function PlaceholderScreen({ title, message }: { title: string; message: string 
   );
 }
 
-export default function App() {
+function AppShell() {
+  const { width } = useWindowDimensions();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeScreen, setActiveScreen] = useState<ScreenKey>('home');
+  const isCompactLayout = width < 900;
 
   const openScreen = (screen: ScreenKey) => {
     setActiveScreen(screen);
@@ -36,18 +58,21 @@ export default function App() {
   };
 
   const activeLabel = SCREENS.find((screen) => screen.key === activeScreen)?.label ?? 'Home';
+  const overlayWidth = Math.min(320, width * 0.84);
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       <View style={styles.topBar}>
         <TouchableOpacity style={styles.menuButton} onPress={() => setIsMenuOpen((prev) => !prev)}>
           <Text style={styles.menuButtonText}>{isMenuOpen ? 'Close' : 'Menu'}</Text>
         </TouchableOpacity>
-        <Text style={styles.topBarTitle}>{activeLabel}</Text>
+        <Text style={styles.topBarTitle} numberOfLines={1}>
+          {activeLabel}
+        </Text>
       </View>
 
       <View style={styles.body}>
-        {isMenuOpen && (
+        {!isCompactLayout && isMenuOpen && (
           <View style={styles.sidebar}>
             <Text style={styles.sidebarTitle}>Menu</Text>
             {SCREENS.map((screen) => (
@@ -75,6 +100,8 @@ export default function App() {
         <View style={styles.content}>
           {activeScreen === 'home' && <Home />}
           {activeScreen === 'camera' && <Camera />}
+          {activeScreen === 'heatmap' && <BiodiversityHeatmap />}
+          {activeScreen === 'heatmapAnalytics' && <BiodiversityAnalytics />}
           {activeScreen === 'myGarden' && <MyGarden />}
           {activeScreen === 'prompt' && <Prompt />}
           {activeScreen === 'login' && (
@@ -90,10 +117,46 @@ export default function App() {
             />
           )}
         </View>
+
+        {isCompactLayout && isMenuOpen && (
+          <View style={styles.mobileMenuLayer}>
+            <Pressable style={styles.mobileMenuScrim} onPress={() => setIsMenuOpen(false)} />
+            <View style={[styles.mobileSidebar, { width: overlayWidth }]}>
+              <Text style={styles.sidebarTitle}>Menu</Text>
+              {SCREENS.map((screen) => (
+                <TouchableOpacity
+                  key={screen.key}
+                  style={[
+                    styles.sidebarItem,
+                    activeScreen === screen.key && styles.sidebarItemActive,
+                  ]}
+                  onPress={() => openScreen(screen.key)}
+                >
+                  <Text
+                    style={[
+                      styles.sidebarItemText,
+                      activeScreen === screen.key && styles.sidebarItemTextActive,
+                    ]}
+                  >
+                    {screen.label}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        )}
       </View>
 
       <StatusBar style="auto" />
     </SafeAreaView>
+  );
+}
+
+export default function App() {
+  return (
+    <SafeAreaProvider>
+      <AppShell />
+    </SafeAreaProvider>
   );
 }
 
@@ -131,13 +194,15 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#1a1f1a',
+    flex: 1,
   },
   body: {
     flex: 1,
     flexDirection: 'row',
+    position: 'relative',
   },
   sidebar: {
-    width: 180,
+    width: 220,
     backgroundColor: '#fff',
     borderRightWidth: 1,
     borderRightColor: '#e2dccf',
@@ -169,6 +234,23 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
+  },
+  mobileMenuLayer: {
+    ...StyleSheet.absoluteFillObject,
+    flexDirection: 'row',
+    zIndex: 20,
+  },
+  mobileMenuScrim: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(12, 18, 14, 0.34)',
+  },
+  mobileSidebar: {
+    height: '100%',
+    backgroundColor: '#fff',
+    borderRightWidth: 1,
+    borderRightColor: '#e2dccf',
+    padding: 12,
+    zIndex: 21,
   },
   placeholder: {
     flex: 1,
