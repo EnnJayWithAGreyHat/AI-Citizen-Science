@@ -39,3 +39,7 @@ Scan the QR code!<br/>
 
 ### STAYING UPDATED
 In GitHub Desktop, there is a "Pull Origin" button near the top left. Click that when you want the most recent version of our changes!
+
+### NEXT STEPS FOR PROJECT
+Obtain feedback from CP after testing in Indonesia and implement the feedback. Complete backend functionality and MyGarden UI (Fall 2026)
+Make any final changes on the app based on CP feedback, deploy code, and create a database to store pics. Deliver project to CP. (Spring 2027).
